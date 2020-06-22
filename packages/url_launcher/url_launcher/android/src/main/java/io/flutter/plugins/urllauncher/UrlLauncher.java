@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Browser;
 import androidx.annotation.Nullable;
+import java.net.URISyntaxException;
 
 /** Launches components for URLs. */
 class UrlLauncher {
@@ -30,8 +31,19 @@ class UrlLauncher {
 
   /** Returns whether the given {@code url} resolves into an existing component. */
   boolean canLaunch(String url) {
-    Intent launchIntent = new Intent(Intent.ACTION_VIEW);
-    launchIntent.setData(Uri.parse(url));
+    Intent launchIntent;
+    Uri uri = Uri.parse(url);
+    if (uri.getScheme().equals("intent")) {
+      try {
+        launchIntent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+      } catch (URISyntaxException e) {
+        result.error("ILLEGAL_URL", "Can't parse the URL " + url, e);
+        return;
+      }
+    } else {
+      launchIntent = new Intent(Intent.ACTION_VIEW);
+      launchIntent.setData(uri);
+    }
     ComponentName componentName =
         launchIntent.resolveActivity(applicationContext.getPackageManager());
 
@@ -66,10 +78,20 @@ class UrlLauncher {
           WebViewActivity.createIntent(
               activity, url, enableJavaScript, enableDomStorage, headersBundle);
     } else {
-      launchIntent =
-          new Intent(Intent.ACTION_VIEW)
-              .setData(Uri.parse(url))
-              .putExtra(Browser.EXTRA_HEADERS, headersBundle);
+      Uri uri = Uri.parse(url);
+      if (uri.getScheme().equals("intent")) {
+        try {
+          launchIntent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+        } catch (URISyntaxException e) {
+          result.error("ILLEGAL_URL", "Can't parse the URL " + url, e);
+          return;
+        }
+      } else {
+        launchIntent =
+                new Intent(Intent.ACTION_VIEW)
+                        .setData(Uri.parse(url))
+                        .putExtra(Browser.EXTRA_HEADERS, headersBundle);
+      }
     }
 
     activity.startActivity(launchIntent);
