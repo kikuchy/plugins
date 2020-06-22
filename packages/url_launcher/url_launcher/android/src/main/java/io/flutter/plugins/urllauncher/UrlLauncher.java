@@ -37,8 +37,7 @@ class UrlLauncher {
       try {
         launchIntent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
       } catch (URISyntaxException e) {
-        result.error("ILLEGAL_URL", "Can't parse the URL " + url, e);
-        return;
+        return false;
       }
     } else {
       launchIntent = new Intent(Intent.ACTION_VIEW);
@@ -83,8 +82,7 @@ class UrlLauncher {
         try {
           launchIntent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
         } catch (URISyntaxException e) {
-          result.error("ILLEGAL_URL", "Can't parse the URL " + url, e);
-          return;
+          return LaunchStatus.NO_ACTIVITY;
         }
       } else {
         launchIntent =
